@@ -1,26 +1,31 @@
 import telebot
 import firebase_admin
-from firebase_admin import credentials, db
+import os
 import requests
 from datetime import datetime
+from dotenv import load_dotenv
+from firebase_admin import credentials, db
 
-# --- SETUP API ---
-TELEGRAM_BOT_TOKEN = "8601889522:AAEPuxz89mI9mOi_Jhp5eqDYgnMSx4MlJJU"
-FIREBASE_URL = "https://ujicobaperintah-default-rtdb.asia-southeast1.firebasedatabase.app/"
+#Memanggil isi .env
+load_dotenv()
+
+#SETUP API
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+FIREBASE_URL = os.getenv("FIREBASE_URL")
+CRED_PATH = os.getenv("FIREBASE_CRED_PATH")
 
 #ALL
 try:
-# --- INISIALISASI FIREBASE ---
+#INISIALISASI FIREBASE
     try:
-        # GANTI "nama_file_json_kamu.json" sesuai nama file kunci kamu
-        cred = credentials.Certificate("ujicobaperintah-firebase-adminsdk-fbsvc-1599c0d837.json")
+        cred = credentials.Certificate(CRED_PATH)
         firebase_admin.initialize_app(cred, {'databaseURL': FIREBASE_URL})
         print("Berhasil Connect ke Firebase!")
     except Exception as e:
         print(f"Gagal Firebase: {e}")
 
-    # --- INISIALISASI TELEGRAM ---
-    bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
+    # INISIALISASI TELEGRAM 
+    bot = telebot.TeleBot(BOT_TOKEN)
 
     @bot.message_handler(commands=['start', 'help'])
     def send_welcome(message):
@@ -30,11 +35,11 @@ try:
     @bot.message_handler(commands=['tutup'])
     def handle_tutup(message):
         try:
-            # 1. Update data di Firebase
+            #Update data di Firebase
             ref = db.reference('status_atap')
             ref.set('tertutup')
             
-            # 2. Balas dengan teks manual (tanpa AI)
+            #Balas dengan teks
             pesan = "Perintah diterima! Atap jemuran sedang ditutup.\n\n[SISTEM]: Data di Firebase telah diubah menjadi 'tertutup'."
             bot.reply_to(message, pesan)
             
@@ -82,13 +87,12 @@ try:
             data_terdekat = None
             selisih_terkecil = float('inf')
             
-            # Loop untuk mencari waktu yang paling dekat dengan jam sekarang
             #Loop untuk mencari waktu yang paling dekat dengan jam sekarang
             for blok_waktu in semua_prediksi:
                 for prediksi in blok_waktu:
                     try:
                         # Menangani format '2026-04-23T12:00:00Z'
-                        # Kita bersihkan 'T' jadi spasi dan 'Z' kita hapus
+                        # Hapus 'T' jadi spasi dan 'Z'
                         raw_waktu = prediksi['datetime'].replace('T', ' ').replace('Z', '')
                         waktu_api = datetime.strptime(raw_waktu, '%Y-%m-%d %H:%M:%S')
                         
@@ -123,7 +127,7 @@ try:
                     f"Kelembapan: {kelembapan}%\n\n"
                     f"{saran}\n"
                     f"----------------------------------\n"
-                    f"Gunakan /status_live untuk cek LDR sekarang."
+                    f"Gunakan /cek_ldr untuk cek LDR sekarang."
                 )
                 bot.send_message(message.chat.id, pesan, parse_mode='HTML')
             else:
@@ -141,7 +145,7 @@ try:
         
         response = f"Nilai LDR saat ini: {nilai_ldr}"
         bot.reply_to(message, response)
-        print("🚀 Sistem Manual Berjalan... Silakan tes di Telegram.")
+        print("Sistem Manual Berjalan... Silakan tes di Telegram.")
     bot.polling()
     
 except Exception as e:
