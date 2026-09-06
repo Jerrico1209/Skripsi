@@ -11,11 +11,19 @@ FIREBASE_URL = os.getenv("FIREBASE_URL")
 bmkg_url = os.getenv("BMKG_URL")
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID_TELEGRAM")
-CRED_PATH = os.getenv("FIREBASE_CRED_PATH")
+FIREBASE_CRED_JSON = os.getenv("FIREBASE_CRED_JSON")
 
 if not firebase_admin._apps:
-    cred = credentials.Certificate(CRED_PATH)
-    firebase_admin.initialize_app(cred, {'databaseURL': FIREBASE_URL})
+    if FIREBASE_CRED_JSON:
+        # Dekode string JSON dari Environment Variable
+        cred_dict = json.loads(FIREBASE_CRED_JSON)
+        cred = credentials.Certificate(cred_dict)
+    else:
+        # Fallback ke path lokal jika running di komputer sendiri
+        CRED_PATH = os.getenv("FIREBASE_CRED_PATH", "credentials.json")
+        cred = credentials.Certificate(CRED_PATH)
+
+    firebase_admin.initialize_app(cred, {"databaseURL": FIREBASE_URL})
 
 def kirim_notif(pesan):
     if not BOT_TOKEN or not CHAT_ID:
