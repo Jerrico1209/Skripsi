@@ -2,3 +2,4 @@ pyTelegramBotAPI
 firebase-admin
 python-dotenv
 openai
+requests
