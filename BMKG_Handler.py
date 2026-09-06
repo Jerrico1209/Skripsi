@@ -12,12 +12,12 @@ FIREBASE_URL = os.getenv("FIREBASE_URL")
 bmkg_url = os.getenv("BMKG_URL")
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID_TELEGRAM")
-FIREBASE_CRED_JSON = os.getenv("FIREBASE_CRED_JSON")
+CRED_PATH = os.getenv("FIREBASE_CRED_PATH")
 
 if not firebase_admin._apps:
-    if FIREBASE_CRED_JSON:
+    if CRED_PATH:
         # Dekode string JSON dari Environment Variable
-        cred_dict = json.loads(FIREBASE_CRED_JSON)
+        cred_dict = json.loads(CRED_PATH)
         cred = credentials.Certificate(cred_dict)
     else:
         # Fallback ke path lokal jika running di komputer sendiri
